@@ -8,6 +8,7 @@ import random
 import shutil
 import time
 import warnings
+import pathlib
 
 import torch
 import torch.nn as nn
@@ -61,6 +62,8 @@ parser.add_argument('-p', '--print-freq', default=10, type=int,
                     metavar='N', help='print frequency (default: 10)')
 parser.add_argument('--resume', default='', type=str, metavar='PATH',
                     help='path to latest checkpoint (default: none)')
+parser.add_argument('--remote-checkpoint-dir', type=str,
+                    help='google bucket location which stores model checkpoints.')
 parser.add_argument('--world-size', default=-1, type=int,
                     help='number of nodes for distributed training')
 parser.add_argument('--rank', default=-1, type=int,
@@ -267,12 +270,14 @@ def main_worker(gpu, ngpus_per_node, args):
 
         if not args.multiprocessing_distributed or (args.multiprocessing_distributed
                 and args.rank % ngpus_per_node == 0):
+            filename = 'checkpoint_{:04d}.pth.tar'.format(epoch)
             save_checkpoint({
                 'epoch': epoch + 1,
                 'arch': args.arch,
                 'state_dict': model.state_dict(),
                 'optimizer' : optimizer.state_dict(),
-            }, is_best=False, filename='checkpoint_{:04d}.pth.tar'.format(epoch))
+            }, is_best=False, filename=filename)
+            push_checkpoint_to_remote(filename, args.remote_checkpoint_dir)
 
 
 def train(train_loader, model, criterion, optimizer, epoch, args):
@@ -322,10 +327,23 @@ def train(train_loader, model, criterion, optimizer, epoch, args):
             progress.display(i)
 
 
-def save_checkpoint(state, is_best, filename='checkpoint.pth.tar'):
+def save_checkpoint(state, is_best, filename='checkpoint.pth.tar', save_latest=True):
     torch.save(state, filename)
     if is_best:
         shutil.copyfile(filename, 'model_best.pth.tar')
+    if save_latest:
+        shutil.copyfile(filename, 'latest.pth.tar')
+    
+
+def push_checkpoint_to_remote(filename, remote_dir, is_best=False, save_latest=True):
+    os.system("gsutil -m cp {} {}/{}".format(filename, remote_dir, pathlib.Path(filename).name))
+    if is_best:
+        best_model_path = pathlib.Path(filename).with_name('model_best.pth.tar')
+        os.system("gsutil -m cp {} {}/{}".format(best_model_path, remote_dir, 'model_best.pth.tar'))
+    if save_latest:
+        latest_model_path = pathlib.Path(filename).with_name('latest.pth.tar')
+        os.system("gsutil -m cp {} {}/{}".format(latest_model_path, remote_dir, 'latest.pth.tar'))
+
 
 
 class AverageMeter(object):
