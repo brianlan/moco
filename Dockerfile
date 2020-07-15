@@ -18,8 +18,8 @@ RUN curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key --keyri
 RUN apt-get install apt-transport-https ca-certificates gnupg                                                                                                                                                                                      
 RUN apt-get update && apt-get install google-cloud-sdk --assume-yes 
 
-COPY requirements.txt .
-RUN pip install -r requirements.txt
+# COPY requirements.txt .
+# RUN pip install -r requirements.txt
 ADD . /moco
 
 ENV PYTHONPATH "${PYTONPATH}:/moco"
