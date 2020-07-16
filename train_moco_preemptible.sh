@@ -4,8 +4,10 @@ local_dataset_dir=$1
 local_model_checkpoint_dir=$2
 gs_dataset_dir=$3
 gs_model_checkpoint_dir=$4
-epochs=$5
-schedule=$6
+lr=$5
+batch_size=$6
+epochs=$7
+schedule=$8
 
 mkdir ${local_dataset_dir} -p
 mkdir ${local_model_checkpoint_dir} -p
@@ -21,8 +23,8 @@ echo "finished downloading model checkpoints"
 echo "start training.."
 python main_moco.py \
   -a resnet50 \
-  --lr 0.03 \
-  --batch-size 256 \
+  --lr ${lr} \
+  --batch-size ${batch_size} \
   --epochs ${epochs} \
   --schedule ${schedule} \
   --dist-url 'tcp://localhost:10001' 
