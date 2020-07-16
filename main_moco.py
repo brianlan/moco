@@ -62,6 +62,8 @@ parser.add_argument('-p', '--print-freq', default=10, type=int,
                     metavar='N', help='print frequency (default: 10)')
 parser.add_argument('--resume', default='', type=str, metavar='PATH',
                     help='path to latest checkpoint (default: none)')
+parser.add_argument('--local-checkpoint-dir', type=pathlib.Path, 
+                    help='local dir which stores model checkpoints.')
 parser.add_argument('--remote-checkpoint-dir', type=str,
                     help='google bucket location which stores model checkpoints.')
 parser.add_argument('--world-size', default=-1, type=int,
@@ -270,7 +272,7 @@ def main_worker(gpu, ngpus_per_node, args):
 
         if not args.multiprocessing_distributed or (args.multiprocessing_distributed
                 and args.rank % ngpus_per_node == 0):
-            filename = 'checkpoint_{:04d}.pth.tar'.format(epoch)
+            filename = args.local_checkpoint_dir / 'checkpoint_{:04d}.pth.tar'.format(epoch)
             save_checkpoint({
                 'epoch': epoch + 1,
                 'arch': args.arch,
@@ -335,13 +337,13 @@ def save_checkpoint(state, is_best, filename='checkpoint.pth.tar', save_latest=T
         shutil.copyfile(filename, 'latest.pth.tar')
     
 
-def push_checkpoint_to_remote(filename, remote_dir, is_best=False, save_latest=True):
-    os.system("gsutil -m cp {} {}/{}".format(filename, remote_dir, pathlib.Path(filename).name))
+def push_checkpoint_to_remote(filename: pathlib.Path, remote_dir, is_best=False, save_latest=True):
+    os.system("gsutil -m cp {} {}/{}".format(filename, remote_dir, filename.name))
     if is_best:
-        best_model_path = pathlib.Path(filename).with_name('model_best.pth.tar')
+        best_model_path = filename.with_name('model_best.pth.tar')
         os.system("gsutil -m cp {} {}/{}".format(best_model_path, remote_dir, 'model_best.pth.tar'))
     if save_latest:
-        latest_model_path = pathlib.Path(filename).with_name('latest.pth.tar')
+        latest_model_path = filename.with_name('latest.pth.tar')
         os.system("gsutil -m cp {} {}/{}".format(latest_model_path, remote_dir, 'latest.pth.tar'))
 
 
