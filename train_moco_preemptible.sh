@@ -18,8 +18,8 @@ echo "downloading ${gs_dataset_zip_path} to ${local_dataset_dir}"
 gsutil -m cp ${gs_dataset_zip_path} ${local_dataset_dir}
 echo "finished downloading data"
 
-echo "unzipping dataset ${local_dataset_zip_path}"
-unzip ${local_dataset_zip_path}
+echo "unzipping dataset ${local_dataset_zip_path} to ${local_dataset_dir}"
+unzip ${local_dataset_zip_path} -d ${local_dataset_dir}
 echo "finished unzipping dataset"
 
 echo "downloading latest model checkpoint from ${gs_model_checkpoint_dir} to ${local_model_checkpoint_dir}"
@@ -35,7 +35,7 @@ python main_moco.py \
   --epochs ${epochs} \
   --schedule ${schedule} \
   --dist-url 'tcp://localhost:10001' \
-  --multiprocessing-distributed \ 
+  --multiprocessing-distributed \
   --world-size 1 --rank 0 \
   --mlp --moco-t 0.2 --aug-plus --cos \
   --local-checkpoint-dir ${local_model_checkpoint_dir} \
