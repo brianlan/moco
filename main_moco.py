@@ -332,9 +332,9 @@ def train(train_loader, model, criterion, optimizer, epoch, args):
 def save_checkpoint(state, is_best, filename='checkpoint.pth.tar', save_latest=True):
     torch.save(state, filename)
     if is_best:
-        shutil.copyfile(filename, 'model_best.pth.tar')
+        shutil.copyfile(filename, filename.with_name('model_best.pth.tar'))
     if save_latest:
-        shutil.copyfile(filename, 'latest.pth.tar')
+        shutil.copyfile(filename, filename.with_name('latest.pth.tar'))
     
 
 def push_checkpoint_to_remote(filename: pathlib.Path, remote_dir, is_best=False, save_latest=True):

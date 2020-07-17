@@ -9,7 +9,21 @@ batch_size=$6
 epochs=$7
 schedule=$8
 
+if [ -d ${local_dataset_dir} ] 
+then
+  echo "directory ${local_dataset_dir} exists. clean it first."
+  rm -rf ${local_dataset_dir}
+fi
+
+if [ -d ${local_model_checkpoint_dir} ] 
+then
+  echo "directory ${local_model_checkpoint_dir} exists. clean it first."
+  rm -rf ${local_model_checkpoint_dir}
+fi
+
+echo "created dataset directory ${local_dataset_dir}" 
 mkdir ${local_dataset_dir} -p
+echo "created checkpoint directory ${local_dataset_dir}" 
 mkdir ${local_model_checkpoint_dir} -p
 
 local_dataset_zip_path=/tmp/$(basename ${gs_dataset_zip_path})
