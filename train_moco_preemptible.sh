@@ -27,7 +27,7 @@ python main_moco.py \
   --batch-size ${batch_size} \
   --epochs ${epochs} \
   --schedule ${schedule} \
-  --dist-url 'tcp://localhost:10001' 
+  --dist-url 'tcp://localhost:10001' \
   --multiprocessing-distributed \ 
   --world-size 1 --rank 0 \
   --mlp --moco-t 0.2 --aug-plus --cos \
