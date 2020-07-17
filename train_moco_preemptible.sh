@@ -59,7 +59,3 @@ python main_moco.py \
   --resume ${local_model_checkpoint_dir}/latest.pth.tar \
   ${local_dataset_dir}
 echo "finished training"
-
-
-
-python main_moco.py -a resnet50 --lr 0.015 --batch-size 128 --epochs 30 --schedule 22 24 --dist-url 'tcp://localhost:10001' --multiprocessing-distributed --world-size 1 --rank 0 --mlp --moco-t 0.2 --aug-plus --cos --local-checkpoint-dir /datadrive/moco_checkpoints --remote-checkpoint-dir gs://rongyi/moco/checkpoints/moco_checkpoints --resume /datadrive/moco_checkpoints/latest.pth.tar /datadrive/dbg_ccth
