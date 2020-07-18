@@ -36,7 +36,7 @@ echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.clou
 curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key --keyring /usr/share/keyrings/cloud.google.gpg add -
 sudo apt-get update && sudo apt-get install -y google-cloud-sdk
 sudo gcloud auth configure-docker --quiet
-sudo gcloud docker -- pull gcr.io/titanium-atlas-219621/moco:v0.0.6
+sudo gcloud docker -- pull gcr.io/titanium-atlas-219621/moco:0.0.6
 
 # Prepare Data
 if [ -d ${local_dataset_dir} ] 
