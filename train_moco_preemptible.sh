@@ -1,11 +1,10 @@
 #!/bin/bash
-#========================================================================
-# This creates the template for model training with preemptible instance.
+#============================================================================
+# This creates the template for training moco model with preemptible instance.
 
-# Created by: Yang Fu
+# Created by: Rongyi Lan
 # Version: 1.0
-#=========================================================================
-
+#============================================================================
 
 ### Metadata specification
 local_dataset_dir=$1
@@ -31,7 +30,7 @@ gcloud beta compute instance-templates create $job_id \
     --image ubuntu1804-cuda102 --image-project titanium-atlas-219621 \
     --maintenance-policy TERMINATE --restart-on-failure \
     --metadata ^___^job_id="$job_id"___local_dataset_dir="$local_dataset_dir"___local_model_checkpoint_dir="$local_model_checkpoint_dir"___gs_dataset_zip_path="$gs_dataset_zip_path"___gs_model_checkpoint_dir="$gs_model_checkpoint_dir"___lr="$lr"___batch_size="$batch_size"___epochs="$epochs"___schedule="$schedule" \
-    --metadata-from-file startup-script=./train_moco_preemptible.sh \
+    --metadata-from-file startup-script=./train_moco_preemptible_startup.sh \
     --scopes https://www.googleapis.com/auth/cloud-platform \
     --preemptible \
     --boot-disk-type=pd-ssd \
