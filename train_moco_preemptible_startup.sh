@@ -26,6 +26,7 @@ echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.clou
 curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key --keyring /usr/share/keyrings/cloud.google.gpg add -
 sudo apt-get update && sudo apt-get install -y google-cloud-sdk
 sudo gcloud auth configure-docker --quiet
+sudo gcloud docker -- pull gcr.io/titanium-atlas-219621/moco:v0.0.6
 
 # Prepare Data
 if [ -d ${local_dataset_dir} ] 
@@ -62,34 +63,25 @@ echo "finished downloading model checkpoints"
 # Start Training
 echo "start training.."
 exec_str="
-python main_moco.py \
-  -a resnet50 \
-  --lr ${lr} \
-  --batch-size ${batch_size} \
-  --epochs ${epochs} \
-  --schedule ${schedule} \
-  --dist-url 'tcp://localhost:10001' \
-  --multiprocessing-distributed \
-  --world-size 1 --rank 0 \
-  --mlp --moco-t 0.2 --aug-plus --cos \
-  --local-checkpoint-dir ${local_model_checkpoint_dir} \
-  --remote-checkpoint-dir ${gs_model_checkpoint_dir} \
-  --resume ${local_model_checkpoint_dir}/latest.pth.tar \
-  ${local_dataset_dir}
+docker run --rm --name moco --ipc=host \
+  -v /datadrive:/datadrive \
+  -v /tmp:/tmp \
+  gcr.io/titanium-atlas-219621/moco:v0.0.6 \
+  python main_moco.py \
+    -a resnet50 \
+    --lr ${lr} \
+    --batch-size ${batch_size} \
+    --epochs ${epochs} \
+    --schedule ${schedule} \
+    --dist-url 'tcp://localhost:10001' \
+    --multiprocessing-distributed \
+    --world-size 1 --rank 0 \
+    --mlp --moco-t 0.2 --aug-plus --cos \
+    --local-checkpoint-dir ${local_model_checkpoint_dir} \
+    --remote-checkpoint-dir ${gs_model_checkpoint_dir} \
+    --resume ${local_model_checkpoint_dir}/latest.pth.tar \
+    ${local_dataset_dir}
 "
 echo $exec_str
-python main_moco.py \
-  -a resnet50 \
-  --lr ${lr} \
-  --batch-size ${batch_size} \
-  --epochs ${epochs} \
-  --schedule ${schedule} \
-  --dist-url 'tcp://localhost:10001' \
-  --multiprocessing-distributed \
-  --world-size 1 --rank 0 \
-  --mlp --moco-t 0.2 --aug-plus --cos \
-  --local-checkpoint-dir ${local_model_checkpoint_dir} \
-  --remote-checkpoint-dir ${gs_model_checkpoint_dir} \
-  --resume ${local_model_checkpoint_dir}/latest.pth.tar \
-  ${local_dataset_dir}
+$($exec_str)
 echo "finished training"
