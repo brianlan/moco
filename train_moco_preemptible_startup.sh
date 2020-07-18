@@ -1,14 +1,5 @@
 #!/bin/bash
 
-local_dataset_dir=$1
-local_model_checkpoint_dir=$2
-gs_dataset_zip_path=$3
-gs_model_checkpoint_dir=$4
-lr=$5
-batch_size=$6
-epochs=$7
-schedule=$8
-
 # get params from google metadata
 job_id=$(curl http://metadata.google.internal/computeMetadata/v1/instance/attributes/job_id -H "Metadata-Flavor: Google")
 local_dataset_dir=$(curl http://metadata.google.internal/computeMetadata/v1/instance/attributes/local_dataset_dir -H "Metadata-Flavor: Google")
@@ -19,6 +10,7 @@ lr=$(curl http://metadata.google.internal/computeMetadata/v1/instance/attributes
 batch_size=$(curl http://metadata.google.internal/computeMetadata/v1/instance/attributes/batch_size -H "Metadata-Flavor: Google")
 epochs=$(curl http://metadata.google.internal/computeMetadata/v1/instance/attributes/epochs -H "Metadata-Flavor: Google")
 schedule=$(curl http://metadata.google.internal/computeMetadata/v1/instance/attributes/schedule -H "Metadata-Flavor: Google")
+code_version=$(curl http://metadata.google.internal/computeMetadata/v1/instance/attributes/code_version -H "Metadata-Flavor: Google")
 
 
 shutdown_vm()
@@ -36,8 +28,11 @@ echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.clou
 curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key --keyring /usr/share/keyrings/cloud.google.gpg add -
 sudo apt-get update && sudo apt-get install -y google-cloud-sdk
 sudo gcloud auth configure-docker --quiet
-git clone https://github.com/brianlan/moco.git
-cd moco
+
+# download repo
+wget https://github.com/brianlan/moco/archive/${code_version}.zip
+unzip ${code_version}.zip
+cd moco-${code_version}/
 
 # Prepare Data
 if [ -d ${local_dataset_dir} ] 
