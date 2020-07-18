@@ -36,7 +36,8 @@ echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.clou
 curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key --keyring /usr/share/keyrings/cloud.google.gpg add -
 sudo apt-get update && sudo apt-get install -y google-cloud-sdk
 sudo gcloud auth configure-docker --quiet
-sudo gcloud docker -- pull gcr.io/titanium-atlas-219621/moco:0.0.6
+git clone https://github.com/brianlan/moco.git
+cd moco
 
 # Prepare Data
 if [ -d ${local_dataset_dir} ] 
@@ -72,12 +73,7 @@ echo "finished downloading model checkpoints"
 
 # Start Training
 echo "start training.."
-exec_str="
-docker run --rm --name moco --ipc=host \
-  -v /datadrive:/datadrive \
-  -v /tmp:/tmp \
-  gcr.io/titanium-atlas-219621/moco:v0.0.6 \
-  python main_moco.py \
+python main_moco.py \
     -a resnet50 \
     --lr ${lr} \
     --batch-size ${batch_size} \
@@ -90,10 +86,8 @@ docker run --rm --name moco --ipc=host \
     --local-checkpoint-dir ${local_model_checkpoint_dir} \
     --remote-checkpoint-dir ${gs_model_checkpoint_dir} \
     --resume ${local_model_checkpoint_dir}/latest.pth.tar \
-    ${local_dataset_dir}
-"
-echo $exec_str
-$($exec_str) 2>&1 | tee $job_id.log
+    ${local_dataset_dir} 2>&1 | tee $job_id.log
+
 echo "finished training"
 
 # Shutdown the VM by setting size of instance group
