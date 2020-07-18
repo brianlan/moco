@@ -18,7 +18,7 @@ schedule=$8
 
 dataset=$(echo $(basename $local_dataset_dir) | sed 's#_#-#g')
 datehour=$(date +"%Y%m%d%H%M")
-job_id=$dataset-$datehour-$(echo $lr | awk '{printf "%.e\n", $1}')-$batch_size-$epochs-$schedule
+job_id=moco-preemptible-$dataset-$datehour-$(echo $lr | awk '{printf "%.e\n", $1}')-$batch_size-$epochs-$schedule
 
 echo "$job_id"
 
