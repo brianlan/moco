@@ -10,6 +10,7 @@ epochs=$7
 schedule=$8
 
 # get params from google metadata
+job_id=$(curl http://metadata.google.internal/computeMetadata/v1/instance/attributes/job_id -H "Metadata-Flavor: Google")
 local_dataset_dir=$(curl http://metadata.google.internal/computeMetadata/v1/instance/attributes/local_dataset_dir -H "Metadata-Flavor: Google")
 local_model_checkpoint_dir=$(curl http://metadata.google.internal/computeMetadata/v1/instance/attributes/local_model_checkpoint_dir -H "Metadata-Flavor: Google")
 gs_dataset_zip_path=$(curl http://metadata.google.internal/computeMetadata/v1/instance/attributes/gs_dataset_zip_path -H "Metadata-Flavor: Google")
@@ -19,6 +20,15 @@ batch_size=$(curl http://metadata.google.internal/computeMetadata/v1/instance/at
 epochs=$(curl http://metadata.google.internal/computeMetadata/v1/instance/attributes/epochs -H "Metadata-Flavor: Google")
 schedule=$(curl http://metadata.google.internal/computeMetadata/v1/instance/attributes/schedule -H "Metadata-Flavor: Google")
 
+
+shutdown_vm()
+{
+  echo "shutting vm down by setting size of instance group to 0"
+  gcloud compute instance-groups managed resize $1 \
+      --size 0 \
+      --zone us-west1-a
+  poweroff
+}
 
 # install environments
 /opt/conda/bin/conda install -y pytorch=1.5.0 torchvision=0.6.0 cudatoolkit=10.2 -c pytorch
@@ -83,5 +93,8 @@ docker run --rm --name moco --ipc=host \
     ${local_dataset_dir}
 "
 echo $exec_str
-$($exec_str)
+$($exec_str) 2>&1 | tee $job_id.log
 echo "finished training"
+
+# Shutdown the VM by setting size of instance group
+shutdown_vm $job_id
