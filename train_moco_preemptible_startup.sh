@@ -68,7 +68,7 @@ echo "finished downloading model checkpoints"
 
 # Start Training
 echo "start training.."
-python main_moco.py \
+/opt/conda/bin/python main_moco.py \
     -a resnet50 \
     --lr ${lr} \
     --batch-size ${batch_size} \
