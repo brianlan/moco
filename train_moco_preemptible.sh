@@ -17,9 +17,11 @@ batch_size=$6
 epochs=$7
 schedule=$8
 
-dataset=$(basename $local_dataset_dir)
-datehour=$(date +"%H%M")
-job_id=$dataset-$datehour-$lr-$batch_size-$epochs-$schedule
+dataset=$(echo $(basename $local_dataset_dir) | sed 's#_#-#g')
+datehour=$(date +"%Y%m%d%H%M")
+job_id=$dataset-$datehour-$(echo $lr | awk '{printf "%.e\n", $1}')-$batch_size-$epochs-$schedule
+
+echo "$job_id"
 
 ### Creates an instance template for specific training jobs
 gcloud beta compute instance-templates create $job_id \
